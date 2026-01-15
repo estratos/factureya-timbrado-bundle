@@ -1,13 +1,14 @@
+# Configuración del Bundle FactureYaTimbradoBundle
 factureya_timbrado:
   # Endpoints de FactureYa
   endpoint: 'https://www.factureya.com/WS/Facturacion40.svc'
   endpoint_pruebas: 'https://demo.factureya.com/WS/Facturacion40.svc'
   
-  # Credenciales (usar variables de entorno)
+  # Credenciales
   usuario: '%env(FACTUREYA_USUARIO)%'
   password: '%env(FACTUREYA_PASSWORD)%'
   
-  # Configuración
+  # Configuración general
   modo_pruebas: '%env(bool:FACTUREYA_MODO_PRUEBAS)%'
   rfc_emisor: '%env(FACTUREYA_RFC_EMISOR)%'
   debug: '%kernel.debug%'
@@ -18,17 +19,33 @@ factureya_timbrado:
     trace: true
     exceptions: true
     connection_timeout: 30
-    ssl_verify_peer: true
-    ssl_verify_peer_name: true
+    ssl_verify_peer: false
+    ssl_verify_peer_name: false
   
   # Notificaciones
   notificaciones:
-    email: '%env(FACTUREYA_EMAIL_NOTIFICACIONES)%'
+    email_from: '%env(FACTUREYA_EMAIL_FROM)%'
+    email_notificaciones: '%env(FACTUREYA_EMAIL_NOTIFICACIONES)%'
     webhook_url: '%env(FACTUREYA_WEBHOOK_URL)%'
-    enviar_email_cliente: false
+    enviar_email_cliente: '%env(bool:FACTUREYA_ENVIAR_EMAIL_CLIENTE)%'
   
   # Almacenamiento
   almacenamiento:
     directorio_xml: '%kernel.project_dir%/var/factureya/xml'
     directorio_pdf: '%kernel.project_dir%/var/factureya/pdf'
+    directorio_acuse: '%kernel.project_dir%/var/factureya/acuse'
     guardar_localmente: true
+    organizar_por_fecha: true
+  
+  # Validación
+  validacion:
+    validar_xsd: true
+    validar_estructura: true
+    validar_calculos: true
+    validar_catalogos: true
+  
+  # Reintentos
+  reintentos:
+    max_reintentos: 3
+    delay_reintento: 1000
+    aumentar_delay: true
