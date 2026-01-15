@@ -1,0 +1,34 @@
+factureya_timbrado:
+  # Endpoints de FactureYa
+  endpoint: 'https://www.factureya.com/WS/Facturacion40.svc'
+  endpoint_pruebas: 'https://demo.factureya.com/WS/Facturacion40.svc'
+  
+  # Credenciales (usar variables de entorno)
+  usuario: '%env(FACTUREYA_USUARIO)%'
+  password: '%env(FACTUREYA_PASSWORD)%'
+  
+  # Configuración
+  modo_pruebas: '%env(bool:FACTUREYA_MODO_PRUEBAS)%'
+  rfc_emisor: '%env(FACTUREYA_RFC_EMISOR)%'
+  debug: '%kernel.debug%'
+  timeout: 30
+  
+  # Opciones SOAP
+  soap_options:
+    trace: true
+    exceptions: true
+    connection_timeout: 30
+    ssl_verify_peer: true
+    ssl_verify_peer_name: true
+  
+  # Notificaciones
+  notificaciones:
+    email: '%env(FACTUREYA_EMAIL_NOTIFICACIONES)%'
+    webhook_url: '%env(FACTUREYA_WEBHOOK_URL)%'
+    enviar_email_cliente: false
+  
+  # Almacenamiento
+  almacenamiento:
+    directorio_xml: '%kernel.project_dir%/var/factureya/xml'
+    directorio_pdf: '%kernel.project_dir%/var/factureya/pdf'
+    guardar_localmente: true
