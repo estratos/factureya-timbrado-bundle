@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           xmlns:cfdi="http://www.sat.gob.mx/cfd/3" 
+           targetNamespace="http://www.sat.gob.mx/cfd/3" 
+           elementFormDefault="qualified">
+    
+    <xs:element name="Comprobante">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="cfdi:Emisor" minOccurs="1" maxOccurs="1"/>
+                <xs:element ref="cfdi:Receptor" minOccurs="1" maxOccurs="1"/>
+                <xs:element ref="cfdi:Conceptos" minOccurs="1" maxOccurs="1"/>
+                <xs:element ref="cfdi:Impuestos" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="cfdi:Complemento" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="Version" type="cfdi:t_Version" use="required"/>
+            <xs:attribute name="Serie" type="cfdi:t_Serie" use="optional"/>
+            <xs:attribute name="Folio" type="cfdi:t_Folio" use="optional"/>
+            <xs:attribute name="Fecha" type="cfdi:t_FechaH" use="required"/>
+            <xs:attribute name="FormaPago" type="cfdi:t_FormaPago" use="optional"/>
+            <xs:attribute name="NoCertificado" type="cfdi:t_NoCertificado" use="required"/>
+            <xs:attribute name="Certificado" type="xs:string" use="optional"/>
+            <xs:attribute name="CondicionesDePago" type="xs:string" use="optional"/>
+            <xs:attribute name="SubTotal" type="cfdi:t_Importe" use="required"/>
+            <xs:attribute name="Descuento" type="cfdi:t_Importe" use="optional"/>
+            <xs:attribute name="Moneda" type="cfdi:t_Moneda" use="required"/>
+            <xs:attribute name="TipoCambio" type="cfdi:t_TipoCambio" use="optional"/>
+            <xs:attribute name="Total" type="cfdi:t_Importe" use="required"/>
+            <xs:attribute name="TipoDeComprobante" type="cfdi:t_TipoDeComprobante" use="required"/>
+            <xs:attribute name="MetodoPago" type="cfdi:t_MetodoPago" use="optional"/>
+            <xs:attribute name="LugarExpedicion" type="cfdi:t_LugarExpedicion" use="required"/>
+            <xs:attribute name="Sello" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Emisor">
+        <xs:complexType>
+            <xs:attribute name="Rfc" type="cfdi:t_Rfc" use="required"/>
+            <xs:attribute name="Nombre" type="xs:string" use="required"/>
+            <xs:attribute name="RegimenFiscal" type="cfdi:t_RegimenFiscal" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Receptor">
+        <xs:complexType>
+            <xs:attribute name="Rfc" type="cfdi:t_Rfc" use="required"/>
+            <xs:attribute name="Nombre" type="xs:string" use="required"/>
+            <xs:attribute name="UsoCFDI" type="cfdi:t_UsoCFDI" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Conceptos">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="cfdi:Concepto" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Concepto">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="cfdi:Impuestos" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="ClaveProdServ" type="cfdi:t_ClaveProdServ" use="required"/>
+            <xs:attribute name="NoIdentificacion" type="xs:string" use="optional"/>
+            <xs:attribute name="Cantidad" type="cfdi:t_Cantidad" use="required"/>
+            <xs:attribute name="ClaveUnidad" type="cfdi:t_ClaveUnidad" use="required"/>
+            <xs:attribute name="Unidad" type="xs:string" use="optional"/>
+            <xs:attribute name="Descripcion" type="xs:string" use="required"/>
+            <xs:attribute name="ValorUnitario" type="cfdi:t_Importe" use="required"/>
+            <xs:attribute name="Importe" type="cfdi:t_Importe" use="required"/>
+            <xs:attribute name="Descuento" type="cfdi:t_Importe" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Impuestos">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="cfdi:Retenciones" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="cfdi:Traslados" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="TotalImpuestosRetenidos" type="cfdi:t_Importe" use="optional"/>
+            <xs:attribute name="TotalImpuestosTrasladados" type="cfdi:t_Importe" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Retenciones">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="cfdi:Retencion" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Retencion">
+        <xs:complexType>
+            <xs:attribute name="Impuesto" type="cfdi:t_Impuesto" use="required"/>
+            <xs:attribute name="Importe" type="cfdi:t_Importe" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Traslados">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="cfdi:Traslado" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Traslado">
+        <xs:complexType>
+            <xs:attribute name="Impuesto" type="cfdi:t_Impuesto" use="required"/>
+            <xs:attribute name="TipoFactor" type="cfdi:t_TipoFactor" use="required"/>
+            <xs:attribute name="TasaOCuota" type="cfdi:t_TasaOCuota" use="required"/>
+            <xs:attribute name="Importe" type="cfdi:t_Importe" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Complemento">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <!-- Tipos de datos -->
+    <xs:simpleType name="t_Version">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="3\.3"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="t_Serie">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+            <xs:maxLength value="25"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="t_Folio">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+            <xs:maxLength value="40"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="t_FechaH">
+        <xs:restriction base="xs:dateTime">
+            <xs:pattern value="\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="t_Importe">
+        <xs:restriction base="xs:decimal">
+            <xs:fractionDigits value="6"/>
+            <xs:totalDigits value="21"/>
+            <xs:minInclusive value="0"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <!-- Más tipos simplificados... -->
+    
+</xs:schema>
