@@ -1,0 +1,61 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  # Factories
+  factureya.soap_client_factory:
+    class: App\FactureYaTimbradoBundle\Service\FactureYaSoapClientFactory
+    public: false
+
+  # SOAP Client
+  factureya.soap_client:
+    class: App\FactureYaTimbradoBundle\Service\FactureYaSoapClient
+    public: false
+    arguments:
+      $wsdl: '%factureya.endpoint%?wsdl'
+      $options:
+        trace: true
+        exceptions: true
+        encoding: 'UTF-8'
+        connection_timeout: 30
+        cache_wsdl: WSDL_CACHE_NONE
+        features: SOAP_SINGLE_ELEMENT_ARRAYS
+
+  # Validators
+  factureya.xml_validator:
+    class: App\FactureYaTimbradoBundle\Service\FactureYaXmlValidator
+    public: false
+
+  # Handlers
+  factureya.response_handler:
+    class: App\FactureYaTimbradoBundle\Service\FactureYaResponseHandler
+    public: false
+
+  # Main Service
+  factureya.timbrado_service:
+    class: App\FactureYaTimbradoBundle\Service\FactureYaTimbradoService
+    arguments:
+      $soapClient: '@factureya.soap_client'
+      $xmlValidator: '@factureya.xml_validator'
+      $responseHandler: '@factureya.response_handler'
+      $configuracion: '%factureya.config%'
+    public: true
+    tags:
+      - { name: 'monolog.logger', channel: 'factureya' }
+
+  # Commandos
+  App\FactureYaTimbradoBundle\Command\FactureYaTimbrarCommand:
+    tags: ['console.command']
+    
+  App\FactureYaTimbradoBundle\Command\FactureYaCancelarCommand:
+    tags: ['console.command']
+    
+  App\FactureYaTimbradoBundle\Command\FactureYaConsultarCommand:
+    tags: ['console.command']
+
+  # Alias para conveniencia
+  App\FactureYaTimbradoBundle\Service\FactureYaTimbradoService: '@factureya.timbrado_service'
+  App\FactureYaTimbradoBundle\Service\FactureYaXmlValidator: '@factureya.xml_validator'
+  App\FactureYaTimbradoBundle\Service\FactureYaResponseHandler: '@factureya.response_handler'
