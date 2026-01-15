@@ -1,61 +1,118 @@
+parameters:
+    factureya.directorio_xml: '%kernel.project_dir%/var/factureya/xml'
+    factureya.directorio_pdf: '%kernel.project_dir%/var/factureya/pdf'
+    factureya.directorio_acuse: '%kernel.project_dir%/var/factureya/acuse'
+    factureya.esquemas_dir: '%kernel.project_dir%/vendor/app/factureya-timbrado-bundle/src/Resources/schemas'
+
 services:
-  _defaults:
-    autowire: true
-    autoconfigure: true
-    public: false
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+        bind:
+            $projectDir: '%kernel.project_dir%'
+            $debugMode: '%kernel.debug%'
 
-  # Factories
-  factureya.soap_client_factory:
-    class: App\FactureYaTimbradoBundle\Service\FactureYaSoapClientFactory
-    public: false
+    # Factory para cliente SOAP
+    factureya.soap_client_factory:
+        class: App\FactureYaTimbradoBundle\Service\FactureYaSoapClientFactory
+        public: false
 
-  # SOAP Client
-  factureya.soap_client:
-    class: App\FactureYaTimbradoBundle\Service\FactureYaSoapClient
-    public: false
-    arguments:
-      $wsdl: '%factureya.endpoint%?wsdl'
-      $options:
-        trace: true
-        exceptions: true
-        encoding: 'UTF-8'
-        connection_timeout: 30
-        cache_wsdl: WSDL_CACHE_NONE
-        features: SOAP_SINGLE_ELEMENT_ARRAYS
+    # Cliente SOAP específico para FactureYa
+    factureya.soap_client:
+        class: App\FactureYaTimbradoBundle\Service\FactureYaSoapClient
+        public: false
+        factory: ['@factureya.soap_client_factory', 'create']
+        arguments:
+            $wsdl: '%env(FACTUREYA_WSDL)%'
+            $options:
+                trace: true
+                exceptions: true
+                encoding: 'UTF-8'
+                connection_timeout: 30
+                cache_wsdl: WSDL_CACHE_NONE
+                features: SOAP_SINGLE_ELEMENT_ARRAYS
+                stream_context:
+                    ssl:
+                        verify_peer: false
+                        verify_peer_name: false
+                        allow_self_signed: true
 
-  # Validators
-  factureya.xml_validator:
-    class: App\FactureYaTimbradoBundle\Service\FactureYaXmlValidator
-    public: false
+    # Validator de XML
+    factureya.xml_validator:
+        class: App\FactureYaTimbradoBundle\Service\FactureYaXmlValidator
+        public: false
+        arguments:
+            $schemasDir: '%factureya.esquemas_dir%'
 
-  # Handlers
-  factureya.response_handler:
-    class: App\FactureYaTimbradoBundle\Service\FactureYaResponseHandler
-    public: false
+    # Handler de respuestas
+    factureya.response_handler:
+        class: App\FactureYaTimbradoBundle\Service\FactureYaResponseHandler
+        public: false
 
-  # Main Service
-  factureya.timbrado_service:
-    class: App\FactureYaTimbradoBundle\Service\FactureYaTimbradoService
-    arguments:
-      $soapClient: '@factureya.soap_client'
-      $xmlValidator: '@factureya.xml_validator'
-      $responseHandler: '@factureya.response_handler'
-      $configuracion: '%factureya.config%'
-    public: true
-    tags:
-      - { name: 'monolog.logger', channel: 'factureya' }
+    # Servicio principal de timbrado
+    factureya.timbrado_service:
+        class: App\FactureYaTimbradoBundle\Service\FactureYaTimbradoService
+        arguments:
+            $soapClient: '@factureya.soap_client'
+            $xmlValidator: '@factureya.xml_validator'
+            $responseHandler: '@factureya.response_handler'
+            $configuracion:
+                usuario: '%env(FACTUREYA_USUARIO)%'
+                password: '%env(FACTUREYA_PASSWORD)%'
+                endpoint: '%env(FACTUREYA_ENDPOINT)%'
+                endpoint_pruebas: '%env(FACTUREYA_ENDPOINT_PRUEBAS)%'
+                modo_pruebas: '%env(bool:FACTUREYA_MODO_PRUEBAS)%'
+                rfc_emisor: '%env(FACTUREYA_RFC_EMISOR)%'
+                timeout: '%env(int:FACTUREYA_TIMEOUT)%'
+                directorio_xml: '%factureya.directorio_xml%'
+                directorio_pdf: '%factureya.directorio_pdf%'
+                directorio_acuse: '%factureya.directorio_acuse%'
+        public: true
+        calls:
+            - [setLogger, ['@logger']]
+        tags:
+            - { name: 'monolog.logger', channel: 'factureya' }
+            - { name: 'kernel.event_subscriber' }
 
-  # Commandos
-  App\FactureYaTimbradoBundle\Command\FactureYaTimbrarCommand:
-    tags: ['console.command']
-    
-  App\FactureYaTimbradoBundle\Command\FactureYaCancelarCommand:
-    tags: ['console.command']
-    
-  App\FactureYaTimbradoBundle\Command\FactureYaConsultarCommand:
-    tags: ['console.command']
+    # Servicio para manejo de archivos
+    factureya.archivos_service:
+        class: App\FactureYaTimbradoBundle\Service\ArchivosService
+        arguments:
+            $directorioXml: '%factureya.directorio_xml%'
+            $directorioPdf: '%factureya.directorio_pdf%'
+            $directorioAcuse: '%factureya.directorio_acuse%'
+        public: true
 
-  # Alias para conveniencia
-  App\FactureYaTimbradoBundle\Service\FactureYaTimbradoService: '@factureya.timbrado_service'
-  App\FactureYaTimbradoBundle\Service\FactureYaXmlValidator: '@factureya.xml_validator'
-  App\FactureYaTimbradoBundle\Service\FactureYaResponseHandler: '@factureya.response_handler'
+    # Servicio para generación de XML
+    factureya.xml_generator:
+        class: App\FactureYaTimbradoBundle\Service\XmlGenerator
+        public: true
+
+    # Servicio para notificaciones
+    factureya.notificacion_service:
+        class: App\FactureYaTimbradoBundle\Service\NotificacionService
+        arguments:
+            $mailer: '@mailer'
+            $twig: '@twig'
+            $emailFrom: '%env(FACTUREYA_EMAIL_FROM)%'
+        public: true
+
+    # Event Subscriber para manejar eventos
+    factureya.event_subscriber:
+        class: App\FactureYaTimbradoBundle\EventSubscriber\FactureYaEventSubscriber
+        arguments:
+            $notificacionService: '@factureya.notificacion_service'
+            $archivosService: '@factureya.archivos_service'
+        tags:
+            - { name: 'kernel.event_subscriber' }
+
+    # Comandos de consola
+    App\FactureYaTimbradoBundle\Command\:
+        resource: '../../Command'
+        tags: ['console.command']
+
+    # Alias para servicios públicos
+    App\FactureYaTimbradoBundle\Service\FactureYaTimbradoService: '@factureya.timbrado_service'
+    App\FactureYaTimbradoBundle\Service\FactureYaXmlValidator: '@factureya.xml_validator'
+    App\FactureYaTimbradoBundle\Service\XmlGenerator: '@factureya.xml_generator'
